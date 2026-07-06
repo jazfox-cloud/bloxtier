@@ -1,0 +1,92 @@
+---
+import type { TierItem } from '@/lib/data';
+
+interface Props {
+  items: TierItem[];
+}
+
+const { items } = Astro.props;
+const encoded = JSON.stringify(items);
+---
+
+<section class="surface rounded-lg p-5" data-compare-tool data-items={encoded}>
+  <div class="grid gap-3 md:grid-cols-2">
+    <label class="block">
+      <span class="text-xs font-black uppercase tracking-[0.16em] text-mint">Pick A</span>
+      <select data-select-a class="mt-2 w-full rounded-md border border-mint/20 bg-ink px-3 py-3 text-white">
+        {items.map((item) => <option value={item.id}>{item.name}</option>)}
+      </select>
+    </label>
+    <label class="block">
+      <span class="text-xs font-black uppercase tracking-[0.16em] text-cyan">Pick B</span>
+      <select data-select-b class="mt-2 w-full rounded-md border border-cyan/20 bg-ink px-3 py-3 text-white">
+        {items.map((item, index) => <option value={item.id} selected={index === 1}>{item.name}</option>)}
+      </select>
+    </label>
+  </div>
+  <div class="mt-6 grid gap-4 lg:grid-cols-2" data-compare-output></div>
+</section>
+
+<script>
+  const tools = document.querySelectorAll('[data-compare-tool]');
+
+  const metricNames = ['pressure', 'mobility', 'control', 'consistency'];
+
+  function renderCard(item) {
+    const metricRows = metricNames.map((metric) => {
+      const value = item.metrics[metric];
+      return `
+        <div>
+          <div class="mb-1 flex items-center justify-between text-xs font-bold text-white/58">
+            <span>${metric}</span>
+            <span>${value}</span>
+          </div>
+          <div class="h-2 overflow-hidden rounded-full bg-white/10">
+            <span class="block h-full rounded-full bg-mint" style="width:${value}%"></span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <article class="rounded-lg border border-mint/15 bg-ink/72 p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-black uppercase tracking-[0.16em] text-mint">${item.type}</p>
+            <h3 class="mt-1 text-xl font-black text-white">${item.name}</h3>
+          </div>
+          <span class="rounded-md bg-white px-2.5 py-1 text-sm font-black text-ink">${item.tier}</span>
+        </div>
+        <p class="mt-3 text-sm font-semibold text-white/78">${item.role}</p>
+        <div class="mt-4 space-y-3">${metricRows}</div>
+        <div class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <p class="font-black text-mint">Strengths</p>
+            <ul class="mt-2 space-y-1 text-white/68">${item.strengths.map((point) => `<li>${point}</li>`).join('')}</ul>
+          </div>
+          <div>
+            <p class="font-black text-gold">Watch</p>
+            <ul class="mt-2 space-y-1 text-white/68">${item.cautions.map((point) => `<li>${point}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  tools.forEach((tool) => {
+    const items = JSON.parse(tool.getAttribute('data-items') || '[]');
+    const selectA = tool.querySelector('[data-select-a]');
+    const selectB = tool.querySelector('[data-select-b]');
+    const output = tool.querySelector('[data-compare-output]');
+
+    const update = () => {
+      const left = items.find((item) => item.id === selectA.value) || items[0];
+      const right = items.find((item) => item.id === selectB.value) || items[1] || items[0];
+      output.innerHTML = renderCard(left) + renderCard(right);
+    };
+
+    selectA.addEventListener('change', update);
+    selectB.addEventListener('change', update);
+    update();
+  });
+</script>

@@ -1,0 +1,60 @@
+---
+import BaseLayout from '@/components/BaseLayout.astro';
+import GameCard from '@/components/GameCard.astro';
+import { codeRecords, games, tierItems } from '@/lib/data';
+---
+
+<BaseLayout>
+  <section class="relative overflow-hidden border-b border-mint/15">
+    <img src="/arena-grid.svg" alt="" class="absolute inset-0 h-full w-full object-cover opacity-72" />
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/30 via-ink/70 to-ink"></div>
+    <div class="relative mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 md:grid-cols-[1.12fr_0.88fr] md:py-20 lg:px-8">
+      <div>
+        <p class="text-sm font-black uppercase tracking-[0.24em] text-mint">Roblox competitive tools</p>
+        <h1 class="mt-4 max-w-4xl text-5xl font-black leading-[1.02] text-white sm:text-6xl lg:text-7xl">
+          BloxTier
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg leading-8 text-white/76">
+          Tier lists, code checks, and side-by-side compare tools for Roblox PvP, anime soccer, and sports event games.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/tier-list/blue-lock-rivals" class="rounded-md bg-mint px-5 py-3 font-black text-ink shadow-glow transition hover:bg-lime">Open Blue Lock tiers</a>
+          <a href="/compare/rivals" class="rounded-md border border-cyan/40 px-5 py-3 font-black text-cyan transition hover:bg-cyan hover:text-ink">Compare RIVALS picks</a>
+        </div>
+      </div>
+      <aside class="surface self-end rounded-lg p-5">
+        <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan">MVP status</p>
+        <div class="mt-4 grid grid-cols-3 gap-3">
+          <div class="rounded-md bg-white/8 p-3">
+            <p class="text-3xl font-black text-white">{games.length}</p>
+            <p class="mt-1 text-xs text-white/58">Games</p>
+          </div>
+          <div class="rounded-md bg-white/8 p-3">
+            <p class="text-3xl font-black text-white">{tierItems.length}</p>
+            <p class="mt-1 text-xs text-white/58">Tier picks</p>
+          </div>
+          <div class="rounded-md bg-white/8 p-3">
+            <p class="text-3xl font-black text-white">{codeRecords.length}</p>
+            <p class="mt-1 text-xs text-white/58">Code checks</p>
+          </div>
+        </div>
+        <p class="mt-4 text-sm leading-6 text-white/66">
+          Last reviewed: 2026-07-06. Starter tiers are separated from verified code data to keep the site useful without publishing fake rewards.
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <p class="text-xs font-black uppercase tracking-[0.18em] text-mint">Launch roster</p>
+        <h2 class="mt-2 text-3xl font-black text-white">Tracked games</h2>
+      </div>
+      <a href="/codes/blue-lock-rivals" class="hidden rounded-md border border-mint/30 px-4 py-2 text-sm font-black text-mint transition hover:bg-mint hover:text-ink sm:inline-flex">Codes queue</a>
+    </div>
+    <div class="mt-6 grid gap-4 md:grid-cols-3">
+      {games.map((game) => <GameCard game={game} />)}
+    </div>
+  </section>
+</BaseLayout>

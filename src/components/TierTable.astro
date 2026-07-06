@@ -1,0 +1,35 @@
+---
+import { tierClass, type TierItem } from '@/lib/data';
+
+interface Props {
+  items: TierItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="overflow-hidden rounded-lg border border-mint/15 bg-panel/82">
+  <div class="grid grid-cols-[72px_1fr] border-b border-mint/15 bg-white/5 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/52 md:grid-cols-[84px_1.1fr_1fr_1fr]">
+    <span>Tier</span>
+    <span>Pick</span>
+    <span class="hidden md:block">Best For</span>
+    <span class="hidden md:block">Notes</span>
+  </div>
+  {items.map((item) => (
+    <article class="grid grid-cols-[72px_1fr] gap-4 border-b border-mint/10 px-4 py-4 last:border-b-0 md:grid-cols-[84px_1.1fr_1fr_1fr]">
+      <div>
+        <span class={`inline-flex h-10 w-10 items-center justify-center rounded-md text-sm font-black ${tierClass(item.tier)}`}>{item.tier}</span>
+      </div>
+      <div>
+        <h3 class="font-black text-white">{item.name}</h3>
+        <p class="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-mint/80">{item.type}</p>
+        <p class="mt-2 text-sm text-white/60 md:hidden">{item.role}</p>
+      </div>
+      <div class="hidden text-sm text-white/70 md:block">
+        <p class="font-semibold text-white">{item.role}</p>
+        <p class="mt-2">{item.strengths.slice(0, 2).join(' / ')}</p>
+      </div>
+      <div class="hidden text-sm leading-6 text-white/62 md:block">{item.sourceNote}</div>
+    </article>
+  ))}
+</div>
