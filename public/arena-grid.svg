@@ -19,6 +19,6 @@
   <path d="M0 478c180-72 338-84 474-36 153 54 281 50 382-12 116-72 226-90 344-44v254H0z" fill="url(#lane)"/>
   <circle cx="945" cy="142" r="88" fill="#68d8ff" opacity="0.1"/>
   <circle cx="960" cy="142" r="48" fill="none" stroke="#68d8ff" stroke-width="2" opacity="0.35"/>
-  <path d="M148 151h150v54H148zM902 404h150v54H902z" fill="#5df2a9" opacity="0.12"/>
-  <path d="M150 150h150v54H150zM904 402h150v54H904z" fill="none" stroke="#5df2a9" stroke-width="2" opacity="0.45"/>
+  <path d="M116 155 354 78M820 430l245-80M78 394l196-64" fill="none" stroke="#5df2a9" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+  <path d="M118 168 356 91M822 443l245-80M80 407l196-64" fill="none" stroke="#68d8ff" stroke-width="1.5" stroke-linecap="round" opacity="0.18"/>
 </svg>
