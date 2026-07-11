@@ -1,7 +1,7 @@
 import { games } from '@/lib/data';
 import { site } from '@/lib/site';
 
-const staticPaths = ['/', '/about/', '/privacy/'];
+const staticPaths = ['/', '/about/', '/contact/', '/privacy/', '/terms/'];
 const gamePaths = games.flatMap((game) => [
   `/games/${game.slug}/`,
   `/codes/${game.slug}/`,
