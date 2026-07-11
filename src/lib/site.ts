@@ -9,11 +9,19 @@ export const site = {
 
 export const navItems = [
   { href: '/', label: 'Home' },
-  { href: '/tier-list/rivals', label: 'Tier Lists' },
-  { href: '/compare/rivals', label: 'Compare' },
-  { href: '/codes/blue-lock-rivals', label: 'Codes' }
+  { href: '/tier-list/rivals/', label: 'Tier Lists' },
+  { href: '/compare/rivals/', label: 'Compare' },
+  { href: '/codes/blue-lock-rivals/', label: 'Codes' }
 ];
 
+export function pagePath(path = '/') {
+  if (path === '/' || path === '') return '/';
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  const lastSegment = normalized.split('/').pop() || '';
+  if (lastSegment.includes('.')) return normalized;
+  return normalized.endsWith('/') ? normalized : `${normalized}/`;
+}
+
 export function canonical(path = '/') {
-  return new URL(path, site.url).toString();
+  return new URL(pagePath(path), site.url).toString();
 }

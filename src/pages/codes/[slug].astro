@@ -11,7 +11,7 @@ if (!game) return Astro.redirect('/');
 const records = getCodeRecords(game.slug);
 ---
 
-<BaseLayout title={`${game.name} Codes`} description={`Verified ${game.name} code status and update queue.`} path={`/codes/${game.slug}`}>
+<BaseLayout title={`${game.name} Codes`} description={`Verified ${game.name} code status and update queue.`} path={`/codes/${game.slug}/`}>
   <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="surface rounded-lg p-6 md:p-8">
       <p class="text-sm font-black uppercase tracking-[0.2em] text-mint">Codes</p>

@@ -18,8 +18,8 @@ const { game } = Astro.props;
   </div>
   <p class="mt-4 text-sm leading-6 text-white/72">{game.summary}</p>
   <div class="mt-5 grid grid-cols-3 gap-2 text-center text-xs font-bold">
-    <a class="rounded-md bg-white/8 px-2 py-3 text-white transition hover:bg-mint hover:text-ink" href={`/games/${game.slug}`}>Game</a>
-    <a class="rounded-md bg-white/8 px-2 py-3 text-white transition hover:bg-mint hover:text-ink" href={`/tier-list/${game.slug}`}>Tier</a>
-    <a class="rounded-md bg-white/8 px-2 py-3 text-white transition hover:bg-mint hover:text-ink" href={`/compare/${game.slug}`}>Compare</a>
+    <a class="rounded-md bg-white/8 px-2 py-3 text-white transition hover:bg-mint hover:text-ink" href={`/games/${game.slug}/`}>Game</a>
+    <a class="rounded-md bg-white/8 px-2 py-3 text-white transition hover:bg-mint hover:text-ink" href={`/tier-list/${game.slug}/`}>Tier</a>
+    <a class="rounded-md bg-white/8 px-2 py-3 text-white transition hover:bg-mint hover:text-ink" href={`/compare/${game.slug}/`}>Compare</a>
   </div>
 </article>

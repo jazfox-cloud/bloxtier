@@ -31,7 +31,7 @@ const url = canonical(path);
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={url} />
-    <meta property="og:image" content={canonical('/arena-grid.svg')} />
+    <meta property="og:image" content={new URL('/arena-grid.svg', site.url).toString()} />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
@@ -48,7 +48,7 @@ const url = canonical(path);
             </a>
           ))}
         </nav>
-        <a href="/compare/blue-lock-rivals" class="rounded-md border border-mint/40 bg-mint px-3 py-2 text-sm font-black text-ink shadow-glow transition hover:bg-lime">
+        <a href="/compare/blue-lock-rivals/" class="rounded-md border border-mint/40 bg-mint px-3 py-2 text-sm font-black text-ink shadow-glow transition hover:bg-lime">
           Compare
         </a>
       </div>
@@ -65,9 +65,9 @@ const url = canonical(path);
           </p>
         </div>
         <div class="flex flex-wrap items-start gap-3 md:justify-end">
-          <a class="hover:text-white" href="/about">About</a>
-          <a class="hover:text-white" href="/privacy">Privacy</a>
-          <a class="hover:text-white" href="/sitemap-index.xml">Sitemap</a>
+          <a class="hover:text-white" href="/about/">About</a>
+          <a class="hover:text-white" href="/privacy/">Privacy</a>
+          <a class="hover:text-white" href="/sitemap.xml">Sitemap</a>
         </div>
       </div>
     </footer>

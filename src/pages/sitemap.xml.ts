@@ -1,12 +1,12 @@
 import { games } from '@/lib/data';
 import { site } from '@/lib/site';
 
-const staticPaths = ['/', '/about', '/privacy'];
+const staticPaths = ['/', '/about/', '/privacy/'];
 const gamePaths = games.flatMap((game) => [
-  `/games/${game.slug}`,
-  `/codes/${game.slug}`,
-  `/tier-list/${game.slug}`,
-  `/compare/${game.slug}`
+  `/games/${game.slug}/`,
+  `/codes/${game.slug}/`,
+  `/tier-list/${game.slug}/`,
+  `/compare/${game.slug}/`
 ]);
 
 export function GET() {

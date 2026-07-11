@@ -30,9 +30,21 @@ const encoded = JSON.stringify(items);
 <script>
   const tools = document.querySelectorAll('[data-compare-tool]');
 
-  const metricNames = ['pressure', 'mobility', 'control', 'consistency'];
+  const metricNames = ['pressure', 'mobility', 'control', 'consistency'] as const;
 
-  function renderCard(item) {
+  type MetricName = (typeof metricNames)[number];
+  type CompareItem = {
+    id: string;
+    name: string;
+    type: string;
+    tier: string;
+    role: string;
+    strengths: string[];
+    cautions: string[];
+    metrics: Record<MetricName, number>;
+  };
+
+  function renderCard(item: CompareItem) {
     const metricRows = metricNames.map((metric) => {
       const value = item.metrics[metric];
       return `
@@ -62,11 +74,11 @@ const encoded = JSON.stringify(items);
         <div class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
           <div>
             <p class="font-black text-mint">Strengths</p>
-            <ul class="mt-2 space-y-1 text-white/68">${item.strengths.map((point) => `<li>${point}</li>`).join('')}</ul>
+            <ul class="mt-2 space-y-1 text-white/68">${item.strengths.map((point: string) => `<li>${point}</li>`).join('')}</ul>
           </div>
           <div>
             <p class="font-black text-gold">Watch</p>
-            <ul class="mt-2 space-y-1 text-white/68">${item.cautions.map((point) => `<li>${point}</li>`).join('')}</ul>
+            <ul class="mt-2 space-y-1 text-white/68">${item.cautions.map((point: string) => `<li>${point}</li>`).join('')}</ul>
           </div>
         </div>
       </article>
@@ -74,14 +86,16 @@ const encoded = JSON.stringify(items);
   }
 
   tools.forEach((tool) => {
-    const items = JSON.parse(tool.getAttribute('data-items') || '[]');
-    const selectA = tool.querySelector('[data-select-a]');
-    const selectB = tool.querySelector('[data-select-b]');
-    const output = tool.querySelector('[data-compare-output]');
+    const items = JSON.parse(tool.getAttribute('data-items') || '[]') as CompareItem[];
+    const selectA = tool.querySelector('[data-select-a]') as HTMLSelectElement | null;
+    const selectB = tool.querySelector('[data-select-b]') as HTMLSelectElement | null;
+    const output = tool.querySelector('[data-compare-output]') as HTMLDivElement | null;
+
+    if (!selectA || !selectB || !output || items.length === 0) return;
 
     const update = () => {
-      const left = items.find((item) => item.id === selectA.value) || items[0];
-      const right = items.find((item) => item.id === selectB.value) || items[1] || items[0];
+      const left = items.find((item: CompareItem) => item.id === selectA.value) || items[0];
+      const right = items.find((item: CompareItem) => item.id === selectB.value) || items[1] || items[0];
       output.innerHTML = renderCard(left) + renderCard(right);
     };
 
