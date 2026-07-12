@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/components/BaseLayout.astro';
+import EmailLink from '@/components/EmailLink.astro';
 ---
 
 <BaseLayout title="Privacy Policy" description="BloxTier privacy policy." path="/privacy/">
@@ -14,7 +15,7 @@ import BaseLayout from '@/components/BaseLayout.astro';
         <p>BloxTier may use third-party advertising services, including Google AdSense. Third-party vendors, including Google, may use cookies, web beacons, IP addresses, or similar identifiers to serve and measure ads based on a visitor's prior visits to this website or other websites.</p>
         <p>Visitors can control or opt out of personalized Google advertising through <a class="text-mint" href="https://adssettings.google.com/">Google Ads Settings</a>. Additional industry opt-out choices are available at <a class="text-mint" href="https://www.aboutads.info/choices/">aboutads.info</a>.</p>
         <h2 class="text-2xl font-black text-white">Contact</h2>
-        <p>Privacy questions can be sent to <a class="text-mint" href="mailto:hello@bloxtier.com">hello@bloxtier.com</a>.</p>
+        <p>Privacy questions can be sent to <EmailLink class="text-mint" />.</p>
         <p>Last updated July 11, 2026.</p>
       </div>
     </div>
