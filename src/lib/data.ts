@@ -13,6 +13,12 @@ export interface Game {
   lastReviewed: string;
   evidence: string[];
   nextStep: string;
+  seo: {
+    overview: string;
+    codes: string;
+    compare: string;
+    tierList: string;
+  };
 }
 
 export interface TierItem {
@@ -59,7 +65,13 @@ export const games: Game[] = [
       'Roblox game page verification still needed before production data lock.',
       'Search result coverage is thin, so BloxTier starts with a conservative editorial loadout model.'
     ],
-    nextStep: 'Verify the official Roblox experience URL and replace starter loadouts with in-game weapon names.'
+    nextStep: 'Verify the official Roblox experience URL and replace starter loadouts with in-game weapon names.',
+    seo: {
+      overview: "Explore BloxTier's RIVALS starter loadout model, evidence notes, tier entries, code status, and comparison tools in one hub.",
+      codes: "Check BloxTier's current RIVALS code status, verification notes, review date, and source requirements before trying a reported reward.",
+      compare: 'Compare RIVALS starter loadout archetypes across pressure, mobility, control, and consistency, with clear editorial-data caveats.',
+      tierList: 'Review RIVALS starter loadout archetypes by tier, role, strengths, and cautions, with source notes showing what still needs live verification.'
+    }
   },
   {
     slug: 'blue-lock-rivals',
@@ -75,7 +87,13 @@ export const games: Game[] = [
       'PC Gamer published a July 2026 codes guide, confirming active search demand.',
       'Public Blue Lock character references support the character/style vocabulary, not Roblox balance values.'
     ],
-    nextStep: 'Cross-check current in-game style names and code redemption results from the live experience.'
+    nextStep: 'Cross-check current in-game style names and code redemption results from the live experience.',
+    seo: {
+      overview: 'Explore Blue Lock: Rivals style tiers, candidate code status, evidence notes, and side-by-side comparison tools from one game hub.',
+      codes: 'Review the Blue Lock: Rivals code queue, candidate-source status, latest check date, and the verification standard used before publication.',
+      compare: 'Compare Blue Lock: Rivals style watchlist entries across pressure, mobility, control, and consistency, with editorial caveats shown clearly.',
+      tierList: 'Review Blue Lock: Rivals style watchlist entries by tier, role, strengths, and cautions while separating editorial analysis from verified balance data.'
+    }
   },
   {
     slug: 'fifa-super-soccer',
@@ -91,7 +109,13 @@ export const games: Game[] = [
       'June 2026 coverage describes FIFA Super Soccer as the event hub for FIFA World Cup content on Roblox.',
       'The original BloxTier plan keeps tournament tracking as a later phase because it needs ongoing schedule data.'
     ],
-    nextStep: 'Keep codes and event notes live, then add standings only after a stable source is selected.'
+    nextStep: 'Keep codes and event notes live, then add standings only after a stable source is selected.',
+    seo: {
+      overview: "Explore FIFA Super Soccer event-route tiers, code status, evidence notes, and comparison tools while the game remains on BloxTier's watchlist.",
+      codes: "Check FIFA Super Soccer's current code status, event-reward distinction, review date, and the evidence BloxTier requires before listing codes.",
+      compare: 'Compare FIFA Super Soccer event routes across pressure, mobility, control, and consistency, with watchlist limits and source notes kept visible.',
+      tierList: 'Review FIFA Super Soccer watchlist event routes by tier, role, strengths, and cautions without treating unverified event details as current facts.'
+    }
   }
 ];
 

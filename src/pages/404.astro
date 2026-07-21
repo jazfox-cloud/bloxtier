@@ -1,0 +1,21 @@
+---
+import BaseLayout from '@/components/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page Not Found"
+  description="The requested BloxTier page could not be found. Return home or use the main navigation to find Roblox tier lists, codes, and compare tools."
+  path="/404/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="surface rounded-lg p-6 text-center md:p-10">
+      <p class="text-sm font-black uppercase tracking-[0.2em] text-mint">404 error</p>
+      <h1 class="mt-3 text-4xl font-black text-white md:text-5xl">Page not found</h1>
+      <p class="mx-auto mt-4 max-w-2xl leading-8 text-white/72">
+        The requested page does not exist. Return to the BloxTier home page to browse the available Roblox tier lists, code checks, and compare tools.
+      </p>
+      <a href="/" class="mt-7 inline-flex rounded-md bg-mint px-5 py-3 font-black text-ink shadow-glow transition hover:bg-lime">Return home</a>
+    </div>
+  </section>
+</BaseLayout>
