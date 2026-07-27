@@ -111,12 +111,13 @@ const measurementId = 'G-QV0HJJW6BQ';
     hideBanner();
   }
 
-  function analyticsEvent(name, params) {
+  function analyticsEvent(name, params, callback) {
     if (!isProductionHost() || localStorage.getItem(consentKey) !== granted) return;
     ensureGtag();
     window.gtag('event', name, {
       ...params,
-      transport_type: 'beacon'
+      transport_type: 'beacon',
+      ...(callback ? { event_callback: callback, event_timeout: 800 } : {})
     });
   }
 
@@ -125,11 +126,31 @@ const measurementId = 'G-QV0HJJW6BQ';
   document.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-select-content]');
     if (!trigger) return;
+    const link = trigger.closest('a[href]');
+    const shouldDelayNavigation =
+      link &&
+      link.target !== '_blank' &&
+      !event.defaultPrevented &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey &&
+      isProductionHost() &&
+      localStorage.getItem(consentKey) === granted;
+    let didNavigate = false;
+    const navigate = () => {
+      if (!link || didNavigate) return;
+      didNavigate = true;
+      window.location.href = link.href;
+    };
+
+    if (shouldDelayNavigation) event.preventDefault();
     analyticsEvent('select_content', {
       content_type: trigger.getAttribute('data-content-type') || 'content_link',
       content_slug: trigger.getAttribute('data-content-slug') || 'unknown',
       placement: trigger.getAttribute('data-content-placement') || 'body'
-    });
+    }, shouldDelayNavigation ? navigate : undefined);
+    if (shouldDelayNavigation) window.setTimeout(navigate, 800);
   });
 
   document.querySelectorAll('[data-privacy-choices]').forEach((button) => {
