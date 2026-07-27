@@ -8,6 +8,49 @@ const port = 9321;
 const baseUrl = process.argv[2] || 'https://bloxtier.com/?ga4verify=cdp';
 const userDataDir = mkdtempSync(join(tmpdir(), 'bloxtier-ga4-'));
 const analyticsPattern = /googletagmanager|google-analytics|\/g\/collect|\/collect/;
+const requestCaptureSource = `(() => {
+  window.__gaRequestCalls = [];
+  const record = (kind, detail) => {
+    try {
+      window.__gaRequestCalls.push({ kind, detail, href: location.href, t: performance.now() });
+    } catch {}
+  };
+  const originalBeacon = navigator.sendBeacon?.bind(navigator);
+  if (originalBeacon) {
+    navigator.sendBeacon = function sendBeacon(url, data) {
+      record('sendBeacon', {
+        url: String(url),
+        body: typeof data === 'string' ? data : data ? Object.prototype.toString.call(data) : ''
+      });
+      return originalBeacon(url, data);
+    };
+  }
+  const originalFetch = window.fetch?.bind(window);
+  if (originalFetch) {
+    window.fetch = function fetch(input, init) {
+      record('fetch', {
+        url: String(input?.url || input),
+        method: init?.method || 'GET',
+        body: typeof init?.body === 'string' ? init.body : init?.body ? Object.prototype.toString.call(init.body) : ''
+      });
+      return originalFetch(input, init);
+    };
+  }
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function open(method, url) {
+    this.__gaRequestCapture = { method, url: String(url) };
+    return originalOpen.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function send(body) {
+    record('xhr', {
+      url: this.__gaRequestCapture?.url,
+      method: this.__gaRequestCapture?.method,
+      body: typeof body === 'string' ? body : body ? Object.prototype.toString.call(body) : ''
+    });
+    return originalSend.apply(this, arguments);
+  };
+})();`;
 
 const chrome = spawn(chromePath, [
   '--headless=new',
@@ -25,7 +68,7 @@ chrome.unref();
 
 function cleanup() {
   chrome.kill('SIGTERM');
-  rmSync(userDataDir, { recursive: true, force: true });
+  rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 }
 
 process.on('SIGINT', () => {
@@ -101,7 +144,7 @@ async function evalValue(client, expression) {
 }
 
 async function verifyCase(label, actionExpression, url = baseUrl) {
-  const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, { method: 'PUT' }).then((response) => response.json());
+  const target = await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' }).then((response) => response.json());
   const client = await connect(target.webSocketDebuggerUrl);
   const requests = [];
   const pageErrors = [];
@@ -122,6 +165,8 @@ async function verifyCase(label, actionExpression, url = baseUrl) {
   await client.send('Network.enable');
   await client.send('Runtime.enable');
   await client.send('Page.enable');
+  await client.send('Page.addScriptToEvaluateOnNewDocument', { source: requestCaptureSource });
+  await client.send('Page.navigate', { url });
   await new Promise((resolve) => setTimeout(resolve, 2500));
   await evalValue(client, `(async () => { ${actionExpression} })()`);
   await new Promise((resolve) => setTimeout(resolve, 6000));
@@ -132,6 +177,7 @@ async function verifyCase(label, actionExpression, url = baseUrl) {
     gtagScripts: [...document.scripts].map((script) => script.src).filter((src) => src.includes('googletagmanager.com')),
     cookies: document.cookie,
     dataLayer: (window.dataLayer || []).map((entry) => Array.from(entry).slice(0, 4)),
+    capturedCalls: window.__gaRequestCalls || [],
     pendingSelect: sessionStorage.getItem('bloxtier_pending_select_content'),
     hasChoices: Boolean(document.querySelector('[data-privacy-choices]')),
     overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -148,7 +194,29 @@ try {
   const reject = await verifyCase('reject', `document.querySelector('[data-consent-reject]')?.click()`);
   const accept = await verifyCase('accept_page_view_select_content', `
     document.querySelector('[data-consent-accept]')?.click();
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => {
+      const started = Date.now();
+      const check = () => {
+        const loaded = [...document.scripts].some((script) => script.src.includes('G-QV0HJJW6BQ'));
+        const configured = (window.dataLayer || []).some((entry) => Array.from(entry)[0] === 'config');
+        if (loaded && configured) resolve();
+        else if (Date.now() - started > 5000) resolve();
+        else setTimeout(check, 100);
+      };
+      check();
+    });
+    await new Promise((resolve) => {
+      const started = Date.now();
+      const check = () => {
+        const calls = window.__gaRequestCalls || [];
+        const hasPageView = calls.some((call) => String(call.detail?.url || '').includes('en=page_view') || String(call.detail?.body || '').includes('en=page_view'));
+        if (hasPageView) resolve();
+        else if (Date.now() - started > 7000) resolve();
+        else setTimeout(check, 100);
+      };
+      check();
+    });
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     const contentLink = document.querySelector('[data-select-content]');
     if (contentLink) {
       contentLink.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'mouse' }));
