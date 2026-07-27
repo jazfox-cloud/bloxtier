@@ -123,12 +123,29 @@ const measurementId = 'G-QV0HJJW6BQ';
 
   window.bloxtierAnalytics = { event: analyticsEvent };
 
+  function selectContentParams(trigger) {
+    return {
+      content_type: trigger.getAttribute('data-content-type') || 'content_link',
+      content_slug: trigger.getAttribute('data-content-slug') || 'unknown',
+      placement: trigger.getAttribute('data-content-placement') || 'body'
+    };
+  }
+
+  document.addEventListener('pointerdown', (event) => {
+    const trigger = event.target.closest('[data-select-content]');
+    if (!trigger || trigger.dataset.analyticsSelectSent === 'true') return;
+    trigger.dataset.analyticsSelectSent = 'true';
+    analyticsEvent('select_content', selectContentParams(trigger));
+  }, { passive: true });
+
   document.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-select-content]');
     if (!trigger) return;
     const link = trigger.closest('a[href]');
+    const alreadySent = trigger.dataset.analyticsSelectSent === 'true';
     const shouldDelayNavigation =
       link &&
+      !alreadySent &&
       link.target !== '_blank' &&
       !event.defaultPrevented &&
       !event.metaKey &&
@@ -145,11 +162,10 @@ const measurementId = 'G-QV0HJJW6BQ';
     };
 
     if (shouldDelayNavigation) event.preventDefault();
-    analyticsEvent('select_content', {
-      content_type: trigger.getAttribute('data-content-type') || 'content_link',
-      content_slug: trigger.getAttribute('data-content-slug') || 'unknown',
-      placement: trigger.getAttribute('data-content-placement') || 'body'
-    }, shouldDelayNavigation ? navigate : undefined);
+    if (!alreadySent) {
+      trigger.dataset.analyticsSelectSent = 'true';
+      analyticsEvent('select_content', selectContentParams(trigger), shouldDelayNavigation ? navigate : undefined);
+    }
     if (shouldDelayNavigation) window.setTimeout(navigate, 800);
   });
 

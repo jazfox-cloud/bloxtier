@@ -148,7 +148,11 @@ try {
   const accept = await verifyCase('accept_page_view_select_content', `
     document.querySelector('[data-consent-accept]')?.click();
     await new Promise((resolve) => setTimeout(resolve, 1200));
-    document.querySelector('[data-select-content]')?.click();
+    const contentLink = document.querySelector('[data-select-content]');
+    if (contentLink) {
+      contentLink.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'mouse' }));
+      contentLink.click();
+    }
   `);
   const filter = await verifyCase('accept_filter_use', `
     document.querySelector('[data-consent-accept]')?.click();
