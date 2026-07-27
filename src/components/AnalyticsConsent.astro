@@ -27,6 +27,7 @@ const measurementId = 'G-QV0HJJW6BQ';
 <script is:inline define:vars={{ measurementId }}>
   const productionHost = 'bloxtier.com';
   const consentKey = 'bloxtier_analytics_consent';
+  const pendingSelectKey = 'bloxtier_pending_select_content';
   const granted = 'granted';
   const denied = 'denied';
   const gtagSrc = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
@@ -88,6 +89,7 @@ const measurementId = 'G-QV0HJJW6BQ';
       send_page_view: true
     });
     loadGoogleTag();
+    window.setTimeout(flushPendingSelectContent, 0);
   }
 
   function stopAnalytics() {
@@ -131,11 +133,40 @@ const measurementId = 'G-QV0HJJW6BQ';
     };
   }
 
+  function canQueueSelectForNavigation(trigger) {
+    const link = trigger.closest('a[href]');
+    if (!link) return false;
+    try {
+      return new URL(link.href).origin === window.location.origin;
+    } catch {
+      return false;
+    }
+  }
+
+  function queuePendingSelectContent(params) {
+    sessionStorage.setItem(pendingSelectKey, JSON.stringify(params));
+  }
+
+  function flushPendingSelectContent() {
+    if (!isProductionHost() || localStorage.getItem(consentKey) !== granted) return;
+    const raw = sessionStorage.getItem(pendingSelectKey);
+    if (!raw) return;
+    sessionStorage.removeItem(pendingSelectKey);
+    try {
+      const params = JSON.parse(raw);
+      analyticsEvent('select_content', params);
+    } catch {
+      sessionStorage.removeItem(pendingSelectKey);
+    }
+  }
+
   document.addEventListener('pointerdown', (event) => {
     const trigger = event.target.closest('[data-select-content]');
     if (!trigger || trigger.dataset.analyticsSelectSent === 'true') return;
     trigger.dataset.analyticsSelectSent = 'true';
-    analyticsEvent('select_content', selectContentParams(trigger));
+    const params = selectContentParams(trigger);
+    if (canQueueSelectForNavigation(trigger)) queuePendingSelectContent(params);
+    else analyticsEvent('select_content', params);
   }, { passive: true });
 
   document.addEventListener('click', (event) => {
@@ -164,7 +195,9 @@ const measurementId = 'G-QV0HJJW6BQ';
     if (shouldDelayNavigation) event.preventDefault();
     if (!alreadySent) {
       trigger.dataset.analyticsSelectSent = 'true';
-      analyticsEvent('select_content', selectContentParams(trigger), shouldDelayNavigation ? navigate : undefined);
+      const params = selectContentParams(trigger);
+      if (canQueueSelectForNavigation(trigger)) queuePendingSelectContent(params);
+      else analyticsEvent('select_content', params, shouldDelayNavigation ? navigate : undefined);
     }
     if (shouldDelayNavigation) window.setTimeout(navigate, 800);
   });
