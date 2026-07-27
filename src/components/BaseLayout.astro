@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import AnalyticsConsent from '@/components/AnalyticsConsent.astro';
 import { canonical, navItems, site } from '@/lib/site';
 
 interface Props {
@@ -41,6 +42,18 @@ const url = canonical(path);
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={new URL('/arena-grid.svg', site.url).toString()} />
     <meta name="twitter:image:alt" content="BloxTier arena grid artwork" />
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500
+      });
+    </script>
   </head>
   <body>
     <header class="sticky top-0 z-50 border-b border-mint/15 bg-ink/88 backdrop-blur-xl">
@@ -77,9 +90,11 @@ const url = canonical(path);
           <a class="hover:text-white" href="/contact/">Contact</a>
           <a class="hover:text-white" href="/privacy/">Privacy</a>
           <a class="hover:text-white" href="/terms/">Terms</a>
+          <button class="text-left hover:text-white" type="button" data-privacy-choices>Privacy Choices</button>
           <a class="hover:text-white" href="/sitemap.xml">Sitemap</a>
         </div>
       </div>
     </footer>
+    <AnalyticsConsent />
   </body>
 </html>

@@ -1,0 +1,149 @@
+---
+const measurementId = 'G-QV0HJJW6BQ';
+---
+
+<div
+  class="fixed inset-x-0 bottom-0 z-[60] hidden border-t border-mint/20 bg-ink/96 px-4 py-4 shadow-2xl backdrop-blur-xl"
+  data-consent-banner
+  role="dialog"
+  aria-live="polite"
+  aria-label="Analytics choices"
+>
+  <div class="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <p class="max-w-3xl text-sm leading-6 text-white/76">
+      BloxTier uses Google Analytics after consent to understand page visits and aggregate content usage. Advertising consent stays off unless a separate certified ads consent flow is configured.
+    </p>
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <button class="rounded-md border border-white/20 px-4 py-2 text-sm font-black text-white transition hover:bg-white hover:text-ink" type="button" data-consent-reject>
+        Reject
+      </button>
+      <button class="rounded-md bg-mint px-4 py-2 text-sm font-black text-ink shadow-glow transition hover:bg-lime" type="button" data-consent-accept>
+        Accept analytics
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ measurementId }}>
+  const productionHost = 'bloxtier.com';
+  const consentKey = 'bloxtier_analytics_consent';
+  const granted = 'granted';
+  const denied = 'denied';
+  const gtagSrc = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+
+  function isProductionHost() {
+    return window.location.hostname === productionHost;
+  }
+
+  function ensureGtag() {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      window.dataLayer.push(arguments);
+    };
+  }
+
+  function updateConsent(analyticsStorage) {
+    ensureGtag();
+    window.gtag('consent', 'update', {
+      analytics_storage: analyticsStorage,
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+  }
+
+  function loadGoogleTag() {
+    if (!isProductionHost() || document.querySelector(`script[src="${gtagSrc}"]`)) return;
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = gtagSrc;
+    document.head.append(script);
+  }
+
+  function deleteCookie(name) {
+    const hostParts = window.location.hostname.split('.');
+    const domains = ['', window.location.hostname, `.${window.location.hostname}`, `.${hostParts.slice(-2).join('.')}`];
+    domains.forEach((domain) => {
+      document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax${domain ? `; domain=${domain}` : ''}`;
+    });
+  }
+
+  function clearAnalyticsCookies() {
+    document.cookie
+      .split(';')
+      .map((cookie) => cookie.trim().split('=')[0])
+      .filter((name) => /^_ga|^_gid$|^_gat/.test(name))
+      .forEach(deleteCookie);
+  }
+
+  function startAnalytics() {
+    if (!isProductionHost()) return;
+    ensureGtag();
+    updateConsent(granted);
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId, {
+      anonymize_ip: true,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
+      send_page_view: true
+    });
+    loadGoogleTag();
+  }
+
+  function stopAnalytics() {
+    updateConsent(denied);
+    document.querySelector(`script[src="${gtagSrc}"]`)?.remove();
+    clearAnalyticsCookies();
+  }
+
+  function showBanner() {
+    document.querySelector('[data-consent-banner]')?.classList.remove('hidden');
+  }
+
+  function hideBanner() {
+    document.querySelector('[data-consent-banner]')?.classList.add('hidden');
+  }
+
+  function saveChoice(choice) {
+    localStorage.setItem(consentKey, choice);
+    if (choice === granted) startAnalytics();
+    if (choice === denied) stopAnalytics();
+    hideBanner();
+  }
+
+  function analyticsEvent(name, params) {
+    if (!isProductionHost() || localStorage.getItem(consentKey) !== granted) return;
+    ensureGtag();
+    window.gtag('event', name, {
+      ...params,
+      transport_type: 'beacon'
+    });
+  }
+
+  window.bloxtierAnalytics = { event: analyticsEvent };
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-select-content]');
+    if (!trigger) return;
+    analyticsEvent('select_content', {
+      content_type: trigger.getAttribute('data-content-type') || 'content_link',
+      content_slug: trigger.getAttribute('data-content-slug') || 'unknown',
+      placement: trigger.getAttribute('data-content-placement') || 'body'
+    });
+  });
+
+  document.querySelectorAll('[data-privacy-choices]').forEach((button) => {
+    button.addEventListener('click', showBanner);
+  });
+
+  document.querySelector('[data-consent-accept]')?.addEventListener('click', () => saveChoice(granted));
+  document.querySelector('[data-consent-reject]')?.addEventListener('click', () => saveChoice(denied));
+
+  const currentChoice = localStorage.getItem(consentKey);
+  if (currentChoice === granted) {
+    startAnalytics();
+  } else {
+    stopAnalytics();
+    if (currentChoice !== denied) showBanner();
+  }
+</script>

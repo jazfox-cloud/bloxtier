@@ -7,9 +7,10 @@ interface Props {
 
 const { items } = Astro.props;
 const encoded = JSON.stringify(items);
+const gameSlug = items[0]?.gameSlug || 'unknown';
 ---
 
-<section class="surface rounded-lg p-5" data-compare-tool data-items={encoded}>
+<section class="surface rounded-lg p-5" data-compare-tool data-items={encoded} data-game-slug={gameSlug}>
   <div class="grid gap-3 md:grid-cols-2">
     <label class="block">
       <span class="text-xs font-black uppercase tracking-[0.16em] text-mint">Pick A</span>
@@ -90,6 +91,7 @@ const encoded = JSON.stringify(items);
     const selectA = tool.querySelector('[data-select-a]') as HTMLSelectElement | null;
     const selectB = tool.querySelector('[data-select-b]') as HTMLSelectElement | null;
     const output = tool.querySelector('[data-compare-output]') as HTMLDivElement | null;
+    const gameSlug = tool.getAttribute('data-game-slug') || 'unknown';
 
     if (!selectA || !selectB || !output || items.length === 0) return;
 
@@ -99,8 +101,22 @@ const encoded = JSON.stringify(items);
       output.innerHTML = renderCard(left) + renderCard(right);
     };
 
-    selectA.addEventListener('change', update);
-    selectB.addEventListener('change', update);
+    const trackFilterUse = (select: HTMLSelectElement, filterType: string) => {
+      window.bloxtierAnalytics?.event('filter_use', {
+        filter_type: filterType,
+        filter_value: select.value,
+        content_slug: gameSlug
+      });
+    };
+
+    selectA.addEventListener('change', () => {
+      update();
+      trackFilterUse(selectA, 'compare_pick_a');
+    });
+    selectB.addEventListener('change', () => {
+      update();
+      trackFilterUse(selectB, 'compare_pick_b');
+    });
     update();
   });
 </script>
