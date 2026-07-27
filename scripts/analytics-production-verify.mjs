@@ -132,6 +132,7 @@ async function verifyCase(label, actionExpression, url = baseUrl) {
     gtagScripts: [...document.scripts].map((script) => script.src).filter((src) => src.includes('googletagmanager.com')),
     cookies: document.cookie,
     dataLayer: (window.dataLayer || []).map((entry) => Array.from(entry).slice(0, 4)),
+    pendingSelect: sessionStorage.getItem('bloxtier_pending_select_content'),
     hasChoices: Boolean(document.querySelector('[data-privacy-choices]')),
     overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
   })`);

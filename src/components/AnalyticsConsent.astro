@@ -54,10 +54,16 @@ const measurementId = 'G-QV0HJJW6BQ';
   }
 
   function loadGoogleTag() {
-    if (!isProductionHost() || document.querySelector(`script[src="${gtagSrc}"]`)) return;
+    if (!isProductionHost()) return;
+    const existingScript = document.querySelector(`script[src="${gtagSrc}"]`);
+    if (existingScript) {
+      window.setTimeout(flushPendingSelectContent, 1200);
+      return;
+    }
     const script = document.createElement('script');
     script.async = true;
     script.src = gtagSrc;
+    script.addEventListener('load', flushPendingSelectContent, { once: true });
     document.head.append(script);
   }
 
@@ -89,7 +95,7 @@ const measurementId = 'G-QV0HJJW6BQ';
       send_page_view: true
     });
     loadGoogleTag();
-    window.setTimeout(flushPendingSelectContent, 0);
+    window.setTimeout(flushPendingSelectContent, 2000);
   }
 
   function stopAnalytics() {
