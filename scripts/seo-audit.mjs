@@ -4,6 +4,8 @@ import { join, relative, sep } from 'node:path';
 const root = process.cwd();
 const dist = join(root, 'dist');
 const siteOrigin = 'https://bloxtier.com';
+const expectedSocialImage = `${siteOrigin}/og/bloxtier-og.png`;
+const expectedSocialImageAlt = 'BloxTier tier lists and comparison tools';
 
 if (!existsSync(dist)) {
   console.error('dist/ is missing. Run npm run build first.');
@@ -50,6 +52,12 @@ function meta(html, key, value) {
   return '';
 }
 
+function metaAll(html, key, value) {
+  return (html.match(/<meta\b[^>]*>/gi) ?? [])
+    .filter((tag) => attr(tag, key)?.toLowerCase() === value.toLowerCase())
+    .map((tag) => decode(attr(tag, 'content') ?? ''));
+}
+
 const htmlFiles = walk(dist).filter((file) => file.endsWith('.html'));
 const pages = htmlFiles.map((file) => {
   const html = readFileSync(file, 'utf8');
@@ -59,6 +67,18 @@ const pages = htmlFiles.map((file) => {
   const robots = meta(html, 'name', 'robots');
   const canonicalTag = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)?.[0] ?? '';
   const canonical = decode(attr(canonicalTag, 'href') ?? '');
+  const og = {
+    image: metaAll(html, 'property', 'og:image'),
+    imageWidth: metaAll(html, 'property', 'og:image:width'),
+    imageHeight: metaAll(html, 'property', 'og:image:height'),
+    imageType: metaAll(html, 'property', 'og:image:type'),
+    imageAlt: metaAll(html, 'property', 'og:image:alt')
+  };
+  const twitter = {
+    card: metaAll(html, 'name', 'twitter:card'),
+    image: metaAll(html, 'name', 'twitter:image'),
+    imageAlt: metaAll(html, 'name', 'twitter:image:alt')
+  };
   const h1 = (html.match(/<h1\b[^>]*>[\s\S]*?<\/h1>/gi) ?? []).map(stripTags);
   const images = (html.match(/<img\b[^>]*>/gi) ?? []).map((tag) => ({
     src: decode(attr(tag, 'src') ?? ''),
@@ -73,7 +93,7 @@ const pages = htmlFiles.map((file) => {
   }));
   const jsonLd = (html.match(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi) ?? [])
     .map((tag) => tag.replace(/^<script\b[^>]*>/i, '').replace(/<\/script>$/i, ''));
-  return { file, route, html, title, description, robots, canonical, h1, images, links, jsonLd };
+  return { file, route, html, title, description, robots, canonical, og, twitter, h1, images, links, jsonLd };
 });
 
 const formalPages = pages.filter((page) => page.route !== '/404/');
@@ -87,6 +107,30 @@ function fail(message) {
   failures.push(message);
 }
 
+const socialImageFile = join(dist, 'og', 'bloxtier-og.png');
+if (!existsSync(socialImageFile)) {
+  fail('social image is missing from dist/og/bloxtier-og.png');
+} else {
+  const png = readFileSync(socialImageFile);
+  const isPng =
+    png.length >= 24 &&
+    png[0] === 0x89 &&
+    png[1] === 0x50 &&
+    png[2] === 0x4e &&
+    png[3] === 0x47 &&
+    png[4] === 0x0d &&
+    png[5] === 0x0a &&
+    png[6] === 0x1a &&
+    png[7] === 0x0a;
+  if (!isPng) {
+    fail('social image is not a PNG file');
+  } else {
+    const width = png.readUInt32BE(16);
+    const height = png.readUInt32BE(20);
+    if (width !== 1200 || height !== 630) fail(`social image dimensions are ${width}x${height}`);
+  }
+}
+
 for (const page of formalPages) {
   const expectedCanonical = new URL(page.route, siteOrigin).toString();
   if (page.canonical !== expectedCanonical) fail(`${page.route}: canonical is ${page.canonical || 'missing'}`);
@@ -97,6 +141,36 @@ for (const page of formalPages) {
   }
   if (page.h1.length !== 1) fail(`${page.route}: expected 1 H1, found ${page.h1.length}`);
   if (/noindex/i.test(page.robots)) fail(`${page.route}: sitemap page is noindex`);
+  if (page.og.image.length !== 1 || page.og.image[0] !== expectedSocialImage) {
+    fail(`${page.route}: og:image is ${page.og.image.join(', ') || 'missing'}`);
+  } else {
+    const parsedOgImage = new URL(page.og.image[0]);
+    if (parsedOgImage.protocol !== 'https:') fail(`${page.route}: og:image is not HTTPS`);
+  }
+  if (page.og.imageWidth.length !== 1 || page.og.imageWidth[0] !== '1200') {
+    fail(`${page.route}: og:image:width is ${page.og.imageWidth.join(', ') || 'missing'}`);
+  }
+  if (page.og.imageHeight.length !== 1 || page.og.imageHeight[0] !== '630') {
+    fail(`${page.route}: og:image:height is ${page.og.imageHeight.join(', ') || 'missing'}`);
+  }
+  if (page.og.imageType.length !== 1 || page.og.imageType[0] !== 'image/png') {
+    fail(`${page.route}: og:image:type is ${page.og.imageType.join(', ') || 'missing'}`);
+  }
+  if (page.og.imageAlt.length !== 1 || page.og.imageAlt[0] !== expectedSocialImageAlt) {
+    fail(`${page.route}: og:image:alt is ${page.og.imageAlt.join(', ') || 'missing'}`);
+  }
+  if (page.twitter.card.length !== 1 || page.twitter.card[0] !== 'summary_large_image') {
+    fail(`${page.route}: twitter:card is ${page.twitter.card.join(', ') || 'missing'}`);
+  }
+  if (page.twitter.image.length !== 1 || page.twitter.image[0] !== expectedSocialImage) {
+    fail(`${page.route}: twitter:image is ${page.twitter.image.join(', ') || 'missing'}`);
+  } else {
+    const parsedTwitterImage = new URL(page.twitter.image[0]);
+    if (parsedTwitterImage.protocol !== 'https:') fail(`${page.route}: twitter:image is not HTTPS`);
+  }
+  if (page.twitter.imageAlt.length !== 1 || page.twitter.imageAlt[0] !== expectedSocialImageAlt) {
+    fail(`${page.route}: twitter:image:alt is ${page.twitter.imageAlt.join(', ') || 'missing'}`);
+  }
   for (const image of page.images) {
     if (image.alt === undefined) fail(`${page.route}: image ${image.src} has no alt attribute`);
   }
@@ -207,12 +281,21 @@ console.log(JSON.stringify({
   redirectInternalLinkCount: redirectLinks.length,
   orphanPageCount: orphanPages.length,
   weakPages,
-  pages: formalPages.map(({ route, title, description, canonical, h1, images }) => ({
+  socialImage: expectedSocialImage,
+  pages: formalPages.map(({ route, title, description, canonical, og, twitter, h1, images }) => ({
     route,
     title,
     description,
     descriptionLength: description.length,
     canonical,
+    ogImage: og.image[0] ?? '',
+    ogImageWidth: og.imageWidth[0] ?? '',
+    ogImageHeight: og.imageHeight[0] ?? '',
+    ogImageType: og.imageType[0] ?? '',
+    ogImageAlt: og.imageAlt[0] ?? '',
+    twitterCard: twitter.card[0] ?? '',
+    twitterImage: twitter.image[0] ?? '',
+    twitterImageAlt: twitter.imageAlt[0] ?? '',
     h1: h1[0] ?? '',
     imageCount: images.length,
     missingAltCount: images.filter((image) => image.alt === undefined).length,
